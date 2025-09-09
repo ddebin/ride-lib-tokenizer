@@ -11,7 +11,7 @@ class TokenizerTest extends TestCase {
 
     private $tokenizer;
 
-    protected function setUp() {
+    protected function setUp(): void {
         $this->tokenizer = new Tokenizer();
         $this->tokenizer->setWillTrimTokens(true);
         $this->tokenizer->addSymbol(new SimpleSymbol('AND'));

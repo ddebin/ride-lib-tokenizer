@@ -63,7 +63,7 @@ class NestedSymbol extends AbstractSymbol {
      * symbol in the tokenize result, false otherwise
      * @return null
      */
-    public function __construct($symbolOpen, $symbolClose, Tokenizer $tokenizer = null, $willIncludeSymbols = false, $allowsSymbolsBeforeOpen = true) {
+    public function __construct($symbolOpen, $symbolClose, ?Tokenizer $tokenizer = null, $willIncludeSymbols = false, $allowsSymbolsBeforeOpen = true) {
         $this->setOpenSymbol($symbolOpen);
         $this->setCloseSymbol($symbolClose);
         $this->setWillIncludeSymbols($willIncludeSymbols);

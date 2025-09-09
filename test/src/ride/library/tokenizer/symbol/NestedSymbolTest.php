@@ -18,20 +18,16 @@ class NestedSymbolTest extends TestCase {
         $this->assertEquals($expectedProcess, $process);
     }
 
-    /**
-     * @expectedException ride\library\tokenizer\exception\TokenizeException
-     * @expectedExceptionMessage Provided open symbol is empty or not a string
-     */
     public function testConstructorOnEmptyOpenSymbol() {
-        $symbol = new NestedSymbol('', ']', null, true, true);
+        $this->expectException(\ride\library\tokenizer\exception\TokenizeException::class);
+        $this->expectExceptionMessage('Provided open symbol is empty or not a string');
+        new NestedSymbol('', ']', null, true, true);
     }
 
-    /**
-     * @expectedException ride\library\tokenizer\exception\TokenizeException
-     * @expectedExceptionMessage Provided close symbol is empty or not a string
-     */
     public function testConstructorOnEmptyCloseSymbol() {
-        $symbol = new NestedSymbol('[', '', null, true, true);
+        $this->expectException(\ride\library\tokenizer\exception\TokenizeException::class);
+        $this->expectExceptionMessage('Provided close symbol is empty or not a string');
+        new NestedSymbol('[', '', null, true, true);
     }
 
     public function testAllowsSymbolsBeforeOpen() {

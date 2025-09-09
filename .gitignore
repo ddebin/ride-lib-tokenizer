@@ -1,5 +1,7 @@
+/vendor/
+/.idea/
+/.*.cache
+/composer.lock
 *.buildpath
 *.project
 *.settings/*
-
-
