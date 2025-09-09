@@ -1,17 +1,27 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace ride\library\tokenizer;
 
+use PHPUnit\Framework\TestCase;
+use ride\library\tokenizer\exception\TokenizeException;
 use ride\library\tokenizer\symbol\NestedSymbol;
 use ride\library\tokenizer\symbol\SimpleSymbol;
 
-use PHPUnit\Framework\TestCase;
-
-class TokenizerTest extends TestCase {
-
+/**
+ * @internal
+ */
+final class TokenizerTest extends TestCase
+{
+    /** @var Tokenizer */
     private $tokenizer;
 
-    protected function setUp(): void {
+    /**
+     * @throws TokenizeException
+     */
+    protected function setUp(): void
+    {
         $this->tokenizer = new Tokenizer();
         $this->tokenizer->setWillTrimTokens(true);
         $this->tokenizer->addSymbol(new SimpleSymbol('AND'));
@@ -19,51 +29,59 @@ class TokenizerTest extends TestCase {
         $this->tokenizer->addSymbol(new NestedSymbol('(', ')', $this->tokenizer));
     }
 
-    public function testInterpret() {
-        $this->assertTrue($this->tokenizer->willTrimTokens());
-        $this->assertEquals(array(), $this->tokenizer->tokenize(''));
+    public function testInterpret(): void
+    {
+        self::assertTrue($this->tokenizer->willTrimTokens());
+        self::assertSame([], $this->tokenizer->tokenize(''));
 
         $condition = '{field} = %2%';
         $tokens = $this->tokenizer->tokenize($condition);
-        $this->assertNotNull($tokens);
-        $this->assertTrue(is_array($tokens), 'result is not an array');
-        $this->assertTrue(count($tokens) == 1, 'result has not expected number of tokens');
-        $this->assertEquals(array('{field} = %2%'), $tokens);
+        self::assertNotNull($tokens);
+        self::assertCount(1, $tokens, 'result has not expected number of tokens');
+        self::assertSame(['{field} = %2%'], $tokens);
     }
 
-    public function testInterpretWithConditionOperator() {
+    public function testInterpretWithConditionOperator(): void
+    {
         $condition = '{field} = %2% AND {field2} <= %1%';
         $tokens = $this->tokenizer->tokenize($condition);
-        $this->assertNotNull($tokens);
-        $this->assertTrue(is_array($tokens), 'result is not an array');
-        $this->assertTrue(count($tokens) == 3, 'result has not expected number of tokens');
-        $this->assertEquals(array('{field} = %2%', 'AND', '{field2} <= %1%'), $tokens);
+        self::assertNotNull($tokens);
+        self::assertCount(3, $tokens, 'result has not expected number of tokens');
+        self::assertSame(['{field} = %2%', 'AND', '{field2} <= %1%'], $tokens);
     }
 
-    public function testInterpretWithBrackets() {
+    public function testInterpretWithBrackets(): void
+    {
         $condition = '{field} = %2% AND ({field2} <= %1% OR {field2} <= %2%)';
         $tokens = $this->tokenizer->tokenize($condition);
-        $this->assertNotNull($tokens);
-        $this->assertTrue(is_array($tokens), 'result is not an array');
-        $this->assertTrue(count($tokens) == 3, 'result has not expected number of tokens');
-        $this->assertEquals(array('{field} = %2%', 'AND', array('{field2} <= %1%', 'OR', '{field2} <= %2%')), $tokens);
+        self::assertNotNull($tokens);
+        self::assertCount(3, $tokens, 'result has not expected number of tokens');
+        self::assertSame(['{field} = %2%', 'AND', ['{field2} <= %1%', 'OR', '{field2} <= %2%']], $tokens);
     }
 
-    public function testInterpretWithBracketsAtTheBeginning() {
+    public function testInterpretWithBracketsAtTheBeginning(): void
+    {
         $condition = '({field2} <= %1% OR {field2} <= %2%) AND {field} = %2%';
         $tokens = $this->tokenizer->tokenize($condition);
-        $this->assertNotNull($tokens);
-        $this->assertTrue(is_array($tokens), 'result is not an array');
-        $this->assertEquals(array(array('{field2} <= %1%', 'OR', '{field2} <= %2%'), 'AND', '{field} = %2%'), $tokens);
+        self::assertNotNull($tokens);
+        self::assertSame([['{field2} <= %1%', 'OR', '{field2} <= %2%'], 'AND', '{field} = %2%'], $tokens);
     }
 
-    public function testInterpretWithMultipleNestedBrackets() {
+    public function testInterpretWithMultipleNestedBrackets(): void
+    {
         $condition = '{field} = 5 AND (({field2} <= %1%) OR ({field2} >= %2%))';
         $tokens = $this->tokenizer->tokenize($condition);
-        $this->assertNotNull($tokens);
-        $this->assertTrue(is_array($tokens), 'result is not an array');
-        $this->assertTrue(count($tokens) == 3, 'result has not expected number of tokens');
-        $this->assertEquals(array('{field} = 5', 'AND', array(array('{field2} <= %1%'), 'OR', array('{field2} >= %2%'))), $tokens);
+        self::assertNotNull($tokens);
+        self::assertCount(3, $tokens, 'result has not expected number of tokens');
+        self::assertSame(['{field} = 5', 'AND', [['{field2} <= %1%'], 'OR', ['{field2} >= %2%']]], $tokens);
     }
 
+    public function testUtf8(): void
+    {
+        $condition = '{field} = "ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ" AND (({field2} <= "τρομερή") OR ({field2} >= "მრავალენოვან"))';
+        $tokens = $this->tokenizer->tokenize($condition);
+        self::assertNotNull($tokens);
+        self::assertCount(3, $tokens, 'result has not expected number of tokens');
+        self::assertSame(['{field} = "ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ"', 'AND', [['{field2} <= "τρομερή"'], 'OR', ['{field2} >= "მრავალენოვან"']]], $tokens);
+    }
 }

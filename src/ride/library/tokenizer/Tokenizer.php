@@ -1,60 +1,65 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace ride\library\tokenizer;
 
 use ride\library\tokenizer\symbol\Symbol;
 
 /**
- * String tokenizer
+ * String tokenizer.
  */
-class Tokenizer {
-
+class Tokenizer
+{
     /**
-     * Array with tokenize symbols
+     * Array with tokenize symbols.
+     *
      * @var array
      */
-    private $symbols = array();
+    private $symbols = [];
 
     /**
-     * Flag to set whether the tokens will be trimmed
-     * @var boolean
+     * Flag to set whether the tokens will be trimmed.
+     *
+     * @var bool
      */
     private $willTrimTokens = false;
 
     /**
-     * Adds a tokenize symbol to this tokenizer
-     * @param \ride\library\tokenizer\symbol\Symbol $symbol
-     * @return null
+     * Adds a tokenize symbol to this tokenizer.
      */
-    public function addSymbol(Symbol $symbol) {
+    public function addSymbol(Symbol $symbol): void
+    {
         $this->symbols[] = $symbol;
     }
 
     /**
-     * Tokenizes the provided string
+     * Tokenizes the provided string.
+     *
      * @param string $string String to tokenize
+     *
      * @return array Array with the tokens of this string as value
      */
-    public function tokenize($string) {
-        if ($string == '') {
-            return array();
+    public function tokenize(string $string): array
+    {
+        if ('' === $string) {
+            return [];
         }
 
-        $stringLength = strlen($string);
-        $tokens = array();
+        $tokens = [];
 
         $toProcess = $string;
         $countToProcess = strlen($toProcess);
         $process = '';
 
-        while ($countToProcess != 0 && strlen($process) < $countToProcess) {
+        while (0 !== $countToProcess && strlen($process) < $countToProcess) {
             $process .= $toProcess[strlen($process)];
 
             foreach ($this->symbols as $symbol) {
                 $previousProcess = $process;
 
                 $symbolTokens = $symbol->tokenize($process, $toProcess);
-                if ($symbolTokens !== null) {
+                if (null !== $symbolTokens) {
                     foreach ($symbolTokens as $symbolToken) {
                         $tokens[] = $symbolToken;
                     }
@@ -63,7 +68,8 @@ class Tokenizer {
                     $process = '';
 
                     break;
-                } elseif ($process != $previousProcess) {
+                }
+                if ($process !== $previousProcess) {
                     break;
                 }
             }
@@ -71,7 +77,7 @@ class Tokenizer {
             $countToProcess = strlen($toProcess);
         }
 
-        if (!empty($toProcess)) {
+        if ('' !== $toProcess) {
             $tokens[] = $toProcess;
         }
 
@@ -85,44 +91,43 @@ class Tokenizer {
     /**
      * Sets whether this tokenizer will trim the resulting tokens. Tokens which
      * are empty after trimming will be removed. Nested tokens are untouched.
-     * @param boolean $willTrimTokens True to trim the tokens, false otherwise
-     * @return null
+     *
+     * @param bool $willTrimTokens True to trim the tokens, false otherwise
      */
-    public function setWillTrimTokens($willTrimTokens) {
+    public function setWillTrimTokens(bool $willTrimTokens): void
+    {
         $this->willTrimTokens = $willTrimTokens;
     }
 
     /**
      * Gets whether this tokenizer will trim tokens. Tokens which are empty
      * after trimming will be removed. Nested tokens are untouched.
-     * @return boolean
      */
-    public function willTrimTokens() {
+    public function willTrimTokens(): bool
+    {
         return $this->willTrimTokens;
     }
 
     /**
      * Trims the provided tokens. Tokens which are empty after trimming will be
      * removed. Nested tokens are untouched.
-     * @param array $tokens
-     * @return array
      */
-    private function trimTokens(array $tokens) {
-        $newTokens = array();
+    private function trimTokens(array $tokens): array
+    {
+        $newTokens = [];
 
-        foreach ($tokens as $key => $token) {
+        foreach ($tokens as $token) {
             if (is_array($token)) {
                 $newTokens[] = $token;
                 continue;
             }
 
             $token = trim($token);
-            if (!empty($token)) {
+            if ('' !== $token) {
                 $newTokens[] = $token;
             }
         }
 
         return $newTokens;
     }
-
 }
